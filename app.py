@@ -7,7 +7,7 @@ from pathlib import Path
 import json
 import gymnasium as gym
 import nle.env
-from simple_agent import generate_game_trajectory, render_observation
+from simple_agent import generate_game_trajectory, render_observation, continue_trajectory_from_step
 
 app = FastAPI(title="NetHack Agent Viewer", description="Visualize NetHack agent moves step by step")
 
@@ -42,6 +42,43 @@ async def generate_new_trajectory(
             "trajectory_id": trajectory_id,
             "length": len(trajectory),
             "message": f"Generated {len(trajectory)} steps"
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.post("/continue")
+async def continue_from_current_step(
+    trajectory_id: str = Form(..., description="ID of trajectory to continue from"),
+    from_step: int = Form(..., description="Step number to continue from"),
+    additional_steps: int = Form(30, description="Number of additional steps to generate"),
+    seed: int = Form(None, description="Random seed (optional)")
+):
+    """Continue a trajectory from a specific step"""
+    try:
+        if trajectory_id not in trajectories:
+            return {"success": False, "error": "Trajectory not found"}
+        
+        existing_trajectory = trajectories[trajectory_id]
+        
+        # Generate continuation
+        new_trajectory = continue_trajectory_from_step(
+            existing_trajectory, 
+            from_step, 
+            additional_steps, 
+            seed
+        )
+        
+        # Create new trajectory ID
+        new_trajectory_id = f"{trajectory_id}_from_step_{from_step}_{additional_steps}"
+        trajectories[new_trajectory_id] = new_trajectory
+        
+        return {
+            "success": True,
+            "trajectory_id": new_trajectory_id,
+            "length": len(new_trajectory),
+            "original_length": len(existing_trajectory),
+            "branched_from_step": from_step,
+            "message": f"Generated {len(new_trajectory) - from_step - 1} additional steps from step {from_step}"
         }
     except Exception as e:
         return {"success": False, "error": str(e)}
