@@ -415,6 +415,60 @@
             }
         }
         
+        async function continueFromHere() {
+            if (!currentTrajectory || !currentTrajectoryId) {
+                showStatus('No trajectory loaded to continue from', 'error');
+                return;
+            }
+            
+            // Prompt user for additional steps
+            const additionalSteps = prompt('How many additional steps to generate?', '30');
+            if (!additionalSteps || isNaN(additionalSteps) || additionalSteps <= 0) {
+                showStatus('Invalid number of steps', 'error');
+                return;
+            }
+            
+            // Optional seed
+            const seed = prompt('Random seed (optional, leave blank for auto-generated):');
+            
+            showStatus(`Continuing trajectory from step ${currentStep}...`, 'info');
+            
+            try {
+                const formData = new FormData();
+                formData.append('trajectory_id', currentTrajectoryId);
+                formData.append('from_step', currentStep.toString());
+                formData.append('additional_steps', additionalSteps);
+                if (seed && !isNaN(seed)) {
+                    formData.append('seed', seed);
+                }
+                
+                const response = await fetch('/continue', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Load the new trajectory
+                    const trajResponse = await fetch(`/trajectory/${data.trajectory_id}`);
+                    const trajData = await trajResponse.json();
+                    
+                    if (trajData.success) {
+                        currentTrajectory = trajData.trajectory;
+                        currentTrajectoryId = data.trajectory_id;
+                        // Stay at the current step but now we have more steps available
+                        updateDisplay();
+                        showStatus(`${data.message}. New trajectory loaded!`, 'success');
+                    }
+                } else {
+                    showStatus('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showStatus('Error continuing trajectory: ' + error.message, 'error');
+            }
+        }
+        
         function showStatus(message, type = 'info') {
             const statusDiv = document.getElementById('status');
             statusDiv.innerHTML = `<div class="${type}">${message}</div>`;
