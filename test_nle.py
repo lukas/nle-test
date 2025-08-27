@@ -1,0 +1,1 @@
+import gymnasium as gym; import nle; env = gym.make("NetHackScore-v0"); obs, info = env.reset(); print("NLE is working\! Game started."); print(f"Observation shape: {obs["chars"].shape}"); print(f"Action space: {env.action_space}")
