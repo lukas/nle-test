@@ -119,6 +119,14 @@
             font-size: 16px;
         }
         
+        .continue-button {
+            background-color: #ff6600 !important;
+        }
+        
+        .continue-button:hover {
+            background-color: #ff8833 !important;
+        }
+        
         .step-info {
             text-align: center;
             margin: 10px 0;
@@ -185,6 +193,7 @@
             <button onclick="playPause()">⏯️ Play/Pause</button>
             <button onclick="nextStep()">➡️ Next</button>
             <button onclick="resetStep()">🔄 Reset</button>
+            <button onclick="continueFromHere()" class="continue-button">🚀 Continue from Here</button>
         </div>
         
         <div class="step-info">
