@@ -2,7 +2,6 @@
 
 from fastapi import FastAPI, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 import json
@@ -12,14 +11,11 @@ from simple_agent import generate_game_trajectory, render_observation
 
 app = FastAPI(title="NetHack Agent Viewer", description="Visualize NetHack agent moves step by step")
 
-# Set up templates and static files
+# Set up templates
 templates_dir = Path("templates")
-static_dir = Path("static")
 templates_dir.mkdir(exist_ok=True)
-static_dir.mkdir(exist_ok=True)
 
 templates = Jinja2Templates(directory=str(templates_dir))
-app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # In-memory storage for trajectories (in production, use a database)
 trajectories = {}
