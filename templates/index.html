@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetHack Agent Viewer</title>
+    <style>
+        body {
+            font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+            background-color: #1a1a1a;
+            color: #00ff00;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        
+        .controls {
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        
+        .game-display {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .game-screen {
+            flex: 2;
+            background-color: #000;
+            border: 2px solid #333;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.2;
+            overflow: hidden;
+        }
+        
+        .game-info {
+            flex: 1;
+            background-color: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        
+        .screen-text {
+            white-space: pre;
+            color: #ffffff;
+            background-color: #000;
+            padding: 10px;
+            border-radius: 3px;
+            overflow: auto;
+            height: 400px;
+        }
+        
+        .message {
+            background-color: #333;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #ffff00;
+        }
+        
+        .stats {
+            margin: 15px 0;
+        }
+        
+        .stat-item {
+            margin: 5px 0;
+            padding: 5px;
+            background-color: #1a1a1a;
+            border-radius: 3px;
+        }
+        
+        .controls input, .controls select, .controls button {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 4px;
+        }
+        
+        .controls button {
+            background-color: #0066cc;
+            cursor: pointer;
+        }
+        
+        .controls button:hover {
+            background-color: #0088ff;
+        }
+        
+        .step-controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .step-controls button {
+            margin: 0 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        
+        .step-info {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 18px;
+            color: #ffff00;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #00ff00;
+            transition: width 0.3s ease;
+        }
+        
+        .error {
+            background-color: #ff3333;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background-color: #33ff33;
+            color: black;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏰 NetHack Agent Viewer</h1>
+            <p>Step through an AI agent's NetHack adventure</p>
+        </div>
+        
+        <div class="controls">
+            <h3>Generate New Trajectory</h3>
+            <input type="number" id="steps" value="50" min="1" max="1000" placeholder="Steps">
+            <input type="number" id="seed" value="42" placeholder="Seed (optional)">
+            <select id="env-name">
+                <option value="NetHackScore-v0">NetHackScore-v0</option>
+                <option value="NetHackStaircase-v0">NetHackStaircase-v0</option>
+                <option value="NetHackOracle-v0">NetHackOracle-v0</option>
+            </select>
+            <button onclick="generateTrajectory()">🎮 Generate New Game</button>
+            <button onclick="loadTrajectories()">📁 Load Available Trajectories</button>
+        </div>
+        
+        <div id="status"></div>
+        
+        <div class="step-controls">
+            <button onclick="previousStep()">⬅️ Previous</button>
+            <button onclick="playPause()">⏯️ Play/Pause</button>
+            <button onclick="nextStep()">➡️ Next</button>
+            <button onclick="resetStep()">🔄 Reset</button>
+        </div>
+        
+        <div class="step-info">
+            Step: <span id="current-step">0</span> / <span id="total-steps">0</span>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        
+        <div class="game-display">
+            <div class="game-screen">
+                <div class="screen-text" id="screen-text">
+                    Welcome to NetHack Agent Viewer!
+                    Generate a new trajectory or load an existing one to begin.
+                </div>
+            </div>
+            
+            <div class="game-info">
+                <div class="message">
+                    <strong>Message:</strong>
+                    <div id="game-message">No game loaded</div>
+                </div>
+                
+                <div class="stats">
+                    <h4>Game Stats</h4>
+                    <div class="stat-item">Turn: <span id="turn">0</span></div>
+                    <div class="stat-item">Action: <span id="action">None</span></div>
+                    <div class="stat-item">Reward: <span id="reward">0</span></div>
+                    <div class="stat-item">Status: <span id="status-text">Ready</span></div>
+                </div>
+                
+                <div class="stats">
+                    <h4>Controls</h4>
+                    <div class="stat-item">← → : Navigate steps</div>
+                    <div class="stat-item">Space: Play/Pause</div>
+                    <div class="stat-item">R: Reset to start</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTrajectory = null;
+        let currentStep = 0;
+        let isPlaying = false;
+        let playInterval = null;
+        
+        // Load default trajectory on page load
+        window.addEventListener('load', () => {
+            loadDefaultTrajectory();
+        });
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    previousStep();
+                    break;
+                case 'ArrowRight':
+                    nextStep();
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    playPause();
+                    break;
+                case 'r':
+                case 'R':
+                    resetStep();
+                    break;
+            }
+        });
+        
+        async function loadDefaultTrajectory() {
+            try {
+                const response = await fetch('/trajectory/default');
+                const data = await response.json();
+                if (data.success) {
+                    currentTrajectory = data.trajectory;
+                    currentStep = 0;
+                    updateDisplay();
+                    showStatus('Default trajectory loaded!', 'success');
+                }
+            } catch (error) {
+                console.error('Error loading default trajectory:', error);
+                showStatus('No default trajectory available. Generate a new one!', 'error');
+            }
+        }
+        
+        async function generateTrajectory() {
+            const steps = document.getElementById('steps').value;
+            const seed = document.getElementById('seed').value;
+            const envName = document.getElementById('env-name').value;
+            
+            showStatus('Generating trajectory...', 'info');
+            
+            try {
+                const formData = new FormData();
+                formData.append('steps', steps);
+                formData.append('seed', seed);
+                formData.append('env_name', envName);
+                
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    // Load the generated trajectory
+                    const trajResponse = await fetch(`/trajectory/${data.trajectory_id}`);
+                    const trajData = await trajResponse.json();
+                    
+                    if (trajData.success) {
+                        currentTrajectory = trajData.trajectory;
+                        currentStep = 0;
+                        updateDisplay();
+                        showStatus(data.message, 'success');
+                    }
+                } else {
+                    showStatus('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showStatus('Error generating trajectory: ' + error.message, 'error');
+            }
+        }
+        
+        async function loadTrajectories() {
+            try {
+                const response = await fetch('/trajectories');
+                const data = await response.json();
+                
+                if (data.trajectories.length === 0) {
+                    showStatus('No trajectories available', 'info');
+                    return;
+                }
+                
+                // For simplicity, load the first available trajectory
+                const firstTrajectory = data.trajectories[0];
+                const trajResponse = await fetch(`/trajectory/${firstTrajectory.id}`);
+                const trajData = await trajResponse.json();
+                
+                if (trajData.success) {
+                    currentTrajectory = trajData.trajectory;
+                    currentStep = 0;
+                    updateDisplay();
+                    showStatus(`Loaded trajectory: ${firstTrajectory.id}`, 'success');
+                }
+            } catch (error) {
+                showStatus('Error loading trajectories: ' + error.message, 'error');
+            }
+        }
+        
+        function updateDisplay() {
+            if (!currentTrajectory || currentTrajectory.length === 0) {
+                return;
+            }
+            
+            const step = currentTrajectory[currentStep];
+            const obs = step.observation;
+            
+            // Update screen text
+            document.getElementById('screen-text').textContent = obs.screen_text.join('\n');
+            
+            // Update game info
+            document.getElementById('game-message').textContent = obs.message;
+            document.getElementById('turn').textContent = obs.turn;
+            document.getElementById('action').textContent = `${step.action} (${step.action_name})`;
+            document.getElementById('reward').textContent = step.reward.toFixed(3);
+            document.getElementById('status-text').textContent = step.terminated ? 'Game Over' : (step.truncated ? 'Truncated' : 'Running');
+            
+            // Update step info
+            document.getElementById('current-step').textContent = currentStep;
+            document.getElementById('total-steps').textContent = currentTrajectory.length - 1;
+            
+            // Update progress bar
+            const progress = (currentStep / (currentTrajectory.length - 1)) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+        }
+        
+        function previousStep() {
+            if (!currentTrajectory || currentStep <= 0) return;
+            currentStep--;
+            updateDisplay();
+        }
+        
+        function nextStep() {
+            if (!currentTrajectory || currentStep >= currentTrajectory.length - 1) return;
+            currentStep++;
+            updateDisplay();
+        }
+        
+        function resetStep() {
+            currentStep = 0;
+            updateDisplay();
+            if (isPlaying) {
+                playPause(); // Stop playing
+            }
+        }
+        
+        function playPause() {
+            if (!currentTrajectory) return;
+            
+            isPlaying = !isPlaying;
+            
+            if (isPlaying) {
+                playInterval = setInterval(() => {
+                    if (currentStep >= currentTrajectory.length - 1) {
+                        playPause(); // Stop at end
+                        return;
+                    }
+                    nextStep();
+                }, 500); // 500ms between steps
+            } else {
+                if (playInterval) {
+                    clearInterval(playInterval);
+                    playInterval = null;
+                }
+            }
+        }
+        
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="${type}">${message}</div>`;
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
