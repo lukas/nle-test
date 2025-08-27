@@ -1,27 +1,42 @@
-# NetHack Agent Viewer
+# NetHack Agent Viewer 🏰
 
-A webapp for visualizing and stepping through NetHack agent moves using the NetHack Learning Environment (NLE).
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com)
+[![NetHack](https://img.shields.io/badge/NetHack-Learning_Environment-orange.svg)](https://github.com/NetHack-LE/nle)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Features
+An interactive webapp for visualizing and stepping through AI agent moves in the NetHack Learning Environment (NLE).
+
+![NetHack Agent Viewer Demo](https://github.com/lukas/nle-test/raw/main/demo.gif)
+
+## ✨ Features
 
 - 🎮 **Interactive Game Viewer**: Step through an agent's NetHack gameplay move by move
-- 🤖 **AI Agent Integration**: Generate new trajectories with a simple random agent
+- 🤖 **AI Agent Integration**: Generate new trajectories with a simple random agent  
 - 📊 **Detailed Stats**: View game statistics, rewards, and action information
 - ⏯️ **Playback Controls**: Play, pause, skip, and navigate through game steps
-- 🎯 **Multiple Environments**: Support for different NetHack environments
+- 🎯 **Multiple Environments**: Support for NetHackScore, NetHackStaircase, NetHackOracle
 - 📁 **Trajectory Management**: Load and save game trajectories
+- ⌨️ **Keyboard Shortcuts**: Arrow keys, Space bar, R for reset
+- 🎨 **Terminal Theme**: Authentic NetHack ASCII aesthetic
 
-## Setup and Installation
+## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.10+
 - Git
-- Build tools (cmake, ninja-build, flex, bison)
+- Build tools: `sudo apt-get install build-essential cmake ninja-build flex bison`
 
-### Installation Steps
+### Installation
 
-1. **Clone and setup NLE**:
+1. **Clone this repository**:
+   ```bash
+   git clone https://github.com/lukas/nle-test.git
+   cd nle-test
+   ```
+
+2. **Set up NetHack Learning Environment**:
    ```bash
    git clone https://github.com/NetHack-LE/nle.git
    cd nle
@@ -31,83 +46,141 @@ A webapp for visualizing and stepping through NetHack agent moves using the NetH
    python3 -m venv nle-venv
    source nle-venv/bin/activate
    
-   # Install NLE and dependencies
+   # Install NLE and webapp dependencies
    pip install -e .
    pip install fastapi uvicorn jinja2 python-multipart
+   cd ..
    ```
 
-2. **Create symbolic link** (if needed):
+3. **Create NetHack data link**:
    ```bash
-   ln -sf nle/nethackdir nethackdir
+   ln -sf nle/nle/nethackdir nle/nethackdir
    ```
 
-3. **Run the webapp**:
+4. **Run the webapp**:
    ```bash
+   cd nle
+   source nle-venv/bin/activate
+   cd ..
    python app.py
    ```
 
-4. **Open in browser**:
-   Navigate to `http://localhost:8000`
+5. **Open in browser**: Navigate to `http://localhost:8000`
 
-## Usage
+## 🎯 Usage
 
-### Web Interface
+### Web Interface Controls
 
-1. **Generate New Trajectory**:
-   - Set number of steps (1-1000)
-   - Choose random seed for reproducibility
-   - Select NetHack environment
-   - Click "Generate New Game"
+| Control | Action |
+|---------|--------|
+| `←` `→` | Navigate steps manually |
+| `Space` | Play/Pause auto-playback |
+| `R` | Reset to beginning |
+| Mouse | Click navigation buttons |
 
-2. **Navigation Controls**:
-   - **← →**: Navigate steps manually
-   - **Space**: Play/Pause auto-playback
-   - **R**: Reset to beginning
-   - Mouse buttons for step navigation
+### Generating Trajectories
 
-3. **Game Information**:
-   - ASCII game screen display
-   - Game messages
-   - Current turn and statistics
-   - Action taken and reward received
+1. **Set Parameters**:
+   - Number of steps (1-1000)
+   - Random seed for reproducibility  
+   - NetHack environment type
 
-### API Endpoints
+2. **Watch Agent Play**: 
+   - See ASCII game screen
+   - Read game messages
+   - Track statistics and rewards
+   - Observe action decisions
 
-- `GET /`: Main web interface
-- `POST /generate`: Generate new trajectory
-- `GET /trajectories`: List available trajectories
-- `GET /trajectory/{id}`: Get specific trajectory
-- `GET /trajectory/{id}/step/{step}`: Get specific step
-- `GET /live-generate`: Generate trajectory and return immediately
+## 🏗️ Architecture
 
-## Architecture
+```mermaid
+graph TD
+    A[NetHack Learning Environment] --> B[Random Agent]
+    B --> C[Trajectory Generator]
+    C --> D[FastAPI Backend]
+    D --> E[Web Frontend]
+    E --> F[Interactive Visualization]
+```
 
-The system consists of:
-- **NetHack Learning Environment (NLE)**: Provides the game environment
-- **Simple Random Agent**: Generates gameplay trajectories
-- **FastAPI Backend**: Serves trajectories and handles requests
-- **Web Frontend**: Interactive visualization interface
+## 📁 Project Structure
 
-## Files Created
+```
+nle-test/
+├── app.py                 # FastAPI web application
+├── simple_agent.py        # Random agent implementation
+├── templates/
+│   └── index.html         # Web interface
+├── game_trajectory.json   # Sample trajectory data
+├── requirements.txt       # Python dependencies
+└── README.md             # This file
+```
 
-- `app.py`: FastAPI web application
-- `simple_agent.py`: Random agent implementation  
-- `templates/index.html`: Web interface
-- `game_trajectory.json`: Sample trajectory data
-- `requirements.txt`: Python dependencies
+## 🔧 API Endpoints
 
-## Troubleshooting
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Main web interface |
+| `/generate` | POST | Generate new trajectory |
+| `/trajectories` | GET | List available trajectories |
+| `/trajectory/{id}` | GET | Get specific trajectory |
+| `/trajectory/{id}/step/{step}` | GET | Get specific step |
+| `/live-generate` | GET | Generate and return trajectory |
 
-1. **"Couldn't find NetHack installation"**: Create symbolic link `ln -sf nle/nethackdir nethackdir`
-2. **Build failures**: Install system dependencies and initialize git submodules
-3. **Import errors**: Activate virtual environment and install dependencies
+## 🐛 Troubleshooting
 
-## Next Steps
+<details>
+<summary>Common Issues</summary>
 
-The webapp is now running at http://localhost:8000 and provides:
-- Interactive game viewing with step-by-step navigation
-- Ability to generate new agent trajectories
-- Real-time visualization of NetHack agent behavior
-- Terminal-themed interface matching the NetHack aesthetic
+### "Couldn't find NetHack installation"
+```bash
+ln -sf nle/nle/nethackdir nle/nethackdir
+```
 
-You can extend this by adding more sophisticated agents, enhanced visualizations, or additional game analysis features.
+### Build failures
+```bash
+sudo apt-get install build-essential cmake ninja-build flex bison
+cd nle && git submodule update --init --recursive
+```
+
+### Import errors
+```bash
+source nle/nle-venv/bin/activate
+pip install -r requirements.txt
+```
+
+</details>
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📈 Roadmap
+
+- [ ] Add more sophisticated agents (PPO, A3C, etc.)
+- [ ] Real-time WebSocket gameplay streaming
+- [ ] Advanced game state analysis tools
+- [ ] Multi-agent comparison views
+- [ ] Training progress visualization
+- [ ] Export trajectories to video
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [NetHack Learning Environment](https://github.com/NetHack-LE/nle) - The underlying RL environment
+- [NetHack Dev Team](https://www.nethack.org/) - The original game
+- [FastAPI](https://fastapi.tiangolo.com/) - Modern web framework
+- [Claude Code](https://claude.ai/code) - AI pair programming assistant
+
+## 🔗 Links
+
+- **Live Demo**: [Coming Soon]
+- **Documentation**: [API Docs](http://localhost:8000/docs) (when running locally)
+- **Issues**: [GitHub Issues](https://github.com/lukas/nle-test/issues)
+- **NetHack Wiki**: [nethackwiki.com](https://nethackwiki.com)
