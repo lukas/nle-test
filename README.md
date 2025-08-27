@@ -77,6 +77,7 @@ An interactive webapp for visualizing and stepping through AI agent moves in the
 | `←` `→` | Navigate steps manually |
 | `Space` | Play/Pause auto-playback |
 | `R` | Reset to beginning |
+| `🚀 Continue from Here` | Branch trajectory from current step |
 | Mouse | Click navigation buttons |
 
 ### Generating Trajectories
