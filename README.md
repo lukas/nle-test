@@ -93,6 +93,27 @@ An interactive webapp for visualizing and stepping through AI agent moves in the
    - Track statistics and rewards
    - Observe action decisions
 
+### Trajectory Branching 🚀
+
+**Continue from any point in the game:**
+
+1. **Navigate to interesting step**: Use arrow keys or play/pause to find a game state you want to explore
+2. **Click "Continue from Here"**: The orange button will appear in step controls  
+3. **Set parameters**: Choose number of additional steps and optional random seed
+4. **Watch new path**: Agent continues playing from that exact point with different random decisions
+
+**Use cases:**
+- **"What if" scenarios**: See what happens if agent made different choices
+- **Exploration**: Branch from promising game states to see multiple outcomes
+- **Analysis**: Compare different agent behaviors from same starting point
+- **Recovery**: Continue from before agent made a fatal mistake
+
+**How it works:**
+- System replays original trajectory up to selected step
+- Continues with new random decisions from that point forward
+- Creates new trajectory ID (e.g., `default_from_step_15_30`)
+- Original trajectory remains unchanged for comparison
+
 ## 🏗️ Architecture
 
 ```mermaid
@@ -123,6 +144,7 @@ nle-test/
 |----------|--------|-------------|
 | `/` | GET | Main web interface |
 | `/generate` | POST | Generate new trajectory |
+| `/continue` | POST | **NEW**: Continue from specific step |
 | `/trajectories` | GET | List available trajectories |
 | `/trajectory/{id}` | GET | Get specific trajectory |
 | `/trajectory/{id}/step/{step}` | GET | Get specific step |
