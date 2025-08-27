@@ -19,6 +19,7 @@ An interactive webapp for visualizing and stepping through AI agent moves in the
 - 📁 **Trajectory Management**: Load and save game trajectories
 - ⌨️ **Keyboard Shortcuts**: Arrow keys, Space bar, R for reset
 - 🎨 **Terminal Theme**: Authentic NetHack ASCII aesthetic
+- 🚀 **Trajectory Branching**: Continue generating moves from any point in the game
 
 ## 🚀 Quick Start
 
